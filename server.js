@@ -4,8 +4,9 @@ app = express(),
 bodyParser = require('body-parser'), 
 cors = require('cors'),
 Excel = require('exceljs'), 
-multer  = require('multer');
-
+multer  = require('multer'), 
+XLSX = require('xlsx'),
+fileUpload = require('express-fileupload');
 const storage = multer.diskStorage(
   {
       destination: path.resolve('./uploads/'),
@@ -17,7 +18,7 @@ const storage = multer.diskStorage(
 const upload = multer({ storage: storage });
 const models = require(path.resolve(__dirname+"/config/config.js"));
 models.sequelize.sync().then(function() {
-    console.log('https://localhost:49658 DB conected succesfully')
+    console.log('http://localhost:45398 DB conected succesfully')
 }).catch(function(err) {
     console.log(err, "Something went wrong with the Database Update!")
 });
@@ -26,9 +27,17 @@ app.use(cors());
 app.use(bodyParser.urlencoded({
     extended: false
 })); 
-
+app.use(fileUpload());
 app.use(bodyParser.json()); 
-
+app.post('/api/read-xlsx', function(req, res) { 
+    const workbook = XLSX.read(req.files.xlsx.data, {type: 'array'});
+    const first_sheet_name = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[first_sheet_name];
+    const jsonStream=XLSX.utils.sheet_to_json(worksheet, {raw:true});
+    res.json({
+        xlsxData:jsonStream
+    })    
+});
 app.post('/api/upload-xlsx',upload.single('image'),async(req,res)=>{
     let tableData=[];  
     try {
