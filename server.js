@@ -34,9 +34,7 @@ app.post('/api/read-xlsx', function(req, res) {
     const first_sheet_name = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[first_sheet_name];
     const jsonStream=XLSX.utils.sheet_to_json(worksheet, {raw:true});
-    res.json({
-        xlsxData:jsonStream
-    })    
+    res.json(jsonStream)    
 });
 app.post('/api/upload-xlsx',upload.single('image'),async(req,res)=>{
     let tableData=[];  
